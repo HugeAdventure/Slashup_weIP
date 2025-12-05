@@ -1,6 +1,7 @@
 const mysql = require('mysql2/promise');
 
 module.exports = async (req, res) => {
+  // 1. Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
@@ -12,7 +13,6 @@ module.exports = async (req, res) => {
   }
 
   const { player } = req.query;
-  console.log(`[API] Received request for player: ${player}`);
 
   if (!player) {
     return res.status(400).json({ error: 'No player specified' });
@@ -20,8 +20,6 @@ module.exports = async (req, res) => {
 
   let connection;
   try {
-    console.log("[API] Connecting to Database...");
-    
     connection = await mysql.createConnection({
       host: 'uk02-sql.pebblehost.com',
       user: 'customer_1134473_Slashup',
@@ -31,7 +29,23 @@ module.exports = async (req, res) => {
       connectTimeout: 10000
     });
 
-    console.log("[API] Connected! Fetching stats...");
+    // --- VIEW COUNT LOGIC (Anti-Spam) ---
+    const cookieName = `viewed_${player.toLowerCase()}`;
+    const cookies = req.headers.cookie || "";
+    const hasViewed = cookies.includes(cookieName);
+
+    if (!hasViewed) {
+        // If they haven't viewed this player recently, increment the DB
+        await connection.execute(
+            'UPDATE slashup_stats SET views = views + 1 WHERE name = ?',
+            [player]
+        );
+        
+        // Set a cookie that expires in 1 hour (3600 seconds)
+        // This prevents them from adding another view for 1 hour
+        res.setHeader('Set-Cookie', `${cookieName}=true; Max-Age=3600; Path=/; SameSite=None; Secure`);
+    }
+    // ------------------------------------
 
     const [statsRows] = await connection.execute(
       'SELECT * FROM slashup_stats WHERE name = ?',
@@ -39,11 +53,9 @@ module.exports = async (req, res) => {
     );
 
     if (statsRows.length === 0) {
-      console.log("[API] Player not found in DB.");
       await connection.end();
       return res.status(404).json({ error: 'Player not found' });
     }
-
 
     const [rankRows] = await connection.execute(
         'SELECT COUNT(*) + 1 as rank FROM slashup_stats WHERE wins > ?',
@@ -57,7 +69,6 @@ module.exports = async (req, res) => {
     );
 
     await connection.end();
-    console.log("[API] Success! Sending data.");
 
     res.status(200).json({
       stats: { ...statsRows[0], rank: exactRank },
