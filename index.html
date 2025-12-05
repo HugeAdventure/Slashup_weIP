@@ -296,7 +296,22 @@
         .skin-viewer { 
             height: 450px; background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%); 
             display: flex; justify-content: center; align-items: center; border: var(--panel-border); position: relative;
+            position: relative;
+            box-shadow: 0 0 50px rgba(255, 62, 62, 0.1); /* Red glow matches your accent */
+            border: 1px solid rgba(255, 62, 62, 0.2);   /* Subtle border */
         }
+        .skin-viewer::after {
+            content: "";
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 20px;
+            background: radial-gradient(ellipse, rgba(0,0,0,0.5) 0%, transparent 70%);
+            z-index: -1;
+        }
+        
         .skin-img { 
             height: 90%; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.6)); animation: float 4s ease-in-out infinite; 
             transition: opacity 0.3s, transform 0.3s; opacity: 0; 
@@ -870,16 +885,21 @@
                     const cardClass = isWin ? 'win' : 'loss';
                     const outcomeText = isWin ? 'VICTORY' : 'DEFEAT';
 
+                    const icon = isWin ? '<i class="fas fa-trophy"></i>' : '<i class="fas fa-skull"></i>';
+
                     const cardHTML = `
                         <div class="match-card ${cardClass}">
-                            <div class="match-outcome">${outcomeText}</div>
-            
+                            <div class="match-outcome">
+                                ${icon} <!-- Added Icon -->
+                                <span style="margin-left:8px;">${outcomeText}</span>
+                            </div>
+                    
                             <div class="match-vs">
                                 <span style="color:#666; font-size:0.8rem; margin-right:10px;">VS</span>
                                 <img src="https://visage.surgeplay.com/face/64/${opponent}" class="opponent-head">
                                 <span class="opponent-name">${opponent}</span>
                             </div>
-
+                    
                             <div class="match-date">${dateStr}</div>
                         </div>
                     `;
