@@ -388,7 +388,7 @@
                             </td>
                             <td style="color:var(--win); font-family:'Share Tech Mono'">${p.wins}</td>
                             <td style="font-family:'Share Tech Mono'">${parseFloat(p.kdr).toFixed(2)}</td>
-                            <td style="color:var(--gold); font-family:'Share Tech Mono'">${p.streak || 0}</td>
+                            <td style="color:var(--gold); font-family:'Share Tech Mono'">${p.best_streak || 0}</td>
                         </tr>
                     `;
                     tbody.innerHTML += row;
