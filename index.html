@@ -13,10 +13,12 @@
             --panel: rgba(20, 20, 25, 0.95);
             --panel-border: 1px solid rgba(255, 255, 255, 0.08);
             --accent: #ff3e3e; 
-            --accent-glow: rgba(255, 62, 62, 0.4);
+            --accent-glow: rgba(255, 62, 62, 0.5);
             --gold: #ffd700;
             --silver: #c0c0c0;
             --bronze: #cd7f32;
+            --win: #44ff44;
+            --loss: #ff4444;
             --text-main: #ffffff;
             --text-dim: #8888aa;
         }
@@ -34,7 +36,7 @@
             flex-direction: column;
         }
 
-        /* Scanlines */
+        /* CRT Scanlines */
         body::after {
             content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
@@ -49,8 +51,17 @@
             border-bottom: var(--panel-border); position: sticky; top: 0; z-index: 100; padding: 1.5rem 0;
         }
         .nav-inner { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 2rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; }
+        .logo { font-size: 2rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; position: relative; }
         .logo span { color: var(--accent); }
+        
+        /* Logo Glitch Hover */
+        .logo:hover { animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite; color: var(--accent); }
+        @keyframes glitch { 
+            0% { transform: translate(0) } 20% { transform: translate(-2px, 2px) } 
+            40% { transform: translate(-2px, -2px) } 60% { transform: translate(2px, 2px) } 
+            80% { transform: translate(2px, -2px) } 100% { transform: translate(0) }
+        }
+
         .nav-links { display: flex; gap: 2rem; }
         .nav-btn {
             background: none; border: none; color: var(--text-dim); font-family: 'Share Tech Mono';
@@ -58,7 +69,7 @@
         }
         .nav-btn:hover, .nav-btn.active { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
 
-        /* --- 3D TILT CARD EFFECT --- */
+        /* --- 3D TILT CARDS --- */
         .tilt-card {
             background: rgba(255,255,255,0.03); border: var(--panel-border); padding: 1.5rem;
             transition: transform 0.1s; position: relative; overflow: hidden;
@@ -69,21 +80,20 @@
             background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
             transform: translateX(-100%); transition: 0.5s; pointer-events: none;
         }
-        .tilt-card:hover { border-color: var(--accent); }
+        .tilt-card:hover { border-color: var(--accent); box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         .tilt-card:hover::before { transform: translateX(100%); }
 
         /* --- TOAST NOTIFICATION --- */
         #toast-box {
-            position: fixed; bottom: 30px; right: -300px; /* Hidden */
+            position: fixed; bottom: 30px; right: -300px;
             background: var(--panel); border-left: 4px solid var(--accent);
             padding: 1rem 2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.5);
             transition: right 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); z-index: 1000;
             display: flex; align-items: center; gap: 15px;
         }
         #toast-box.show { right: 30px; }
-        .toast-icon { color: var(--accent); font-size: 1.5rem; }
 
-        /* --- PAGE SECTIONS --- */
+        /* --- SECTIONS --- */
         .page-section { display: none; animation: fadeIn 0.5s ease; padding-bottom: 5rem; }
         .page-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -91,9 +101,9 @@
         /* --- HERO --- */
         .hero {
             height: 70vh; display: flex; align-items: center; justify-content: center; text-align: center;
-            background: radial-gradient(circle at center, rgba(255,62,62,0.1) 0%, transparent 70%); margin-bottom: 4rem;
+            background: radial-gradient(circle at center, rgba(255,62,62,0.08) 0%, transparent 60%); margin-bottom: 4rem;
         }
-        .hero h1 { font-size: 5rem; line-height: 0.9; text-transform: uppercase; margin-bottom: 1.5rem; }
+        .hero h1 { font-size: 5rem; line-height: 0.9; text-transform: uppercase; margin-bottom: 1.5rem; text-shadow: 0 0 20px rgba(0,0,0,0.5); }
         .cta-btn {
             background: var(--accent); color: white; padding: 1rem 3rem; font-family: 'Share Tech Mono';
             font-size: 1.2rem; border: none; cursor: pointer; transition: 0.3s;
@@ -101,62 +111,77 @@
         }
         .cta-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px var(--accent-glow); }
 
-        /* --- CONTENT GRIDS --- */
         .content-row { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 4rem; }
         .panel-box { background: var(--panel); border: var(--panel-border); padding: 2rem; }
-        .mech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .section-title {
+            font-size: 1.5rem; color: var(--accent); margin-bottom: 1.5rem; font-family: 'Share Tech Mono';
+            text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;
+        }
+        .news-item {
+            margin-bottom: 1.5rem; padding-left: 1rem; border-left: 2px solid var(--text-dim); transition: 0.3s;
+        }
+        .news-item:hover { border-left-color: var(--accent); padding-left: 1.5rem; background: linear-gradient(90deg, rgba(255,255,255,0.02), transparent); }
+        .news-date { color: var(--accent); font-size: 0.8rem; font-family: 'Share Tech Mono'; margin-bottom: 5px; }
+        .news-head { font-size: 1.2rem; margin-bottom: 5px; color: white; font-weight: bold; }
         
-        /* --- LEADERBOARD STYLES --- */
+        .mech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+
         .lb-controls { display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center; }
         .lb-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
         .lb-table th { text-align: left; padding: 1rem; color: var(--text-dim); text-transform: uppercase; font-size: 0.8rem; }
         .lb-row { background: rgba(255,255,255,0.02); transition: 0.2s; }
-        .lb-row:hover { background: rgba(255,255,255,0.05); transform: scale(1.01); }
+        .lb-row:hover { background: rgba(255,255,255,0.05); transform: scale(1.01); box-shadow: 0 0 15px rgba(0,0,0,0.3); }
         .lb-row td { padding: 1rem; vertical-align: middle; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
         
-        /* Rank Specifics */
         .rank-num { font-family: 'Share Tech Mono'; font-size: 1.2rem; width: 50px; text-align: center; }
         .player-cell { display: flex; align-items: center; gap: 15px; }
-        .lb-head { width: 32px; height: 32px; border-radius: 4px; }
+        .lb-head { width: 32px; height: 32px; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
         
-        /* Top 3 Styling */
         .lb-row.rank-1 { background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent); border-left: 4px solid var(--gold); }
         .lb-row.rank-1 .rank-num { color: var(--gold); font-size: 1.5rem; text-shadow: 0 0 10px var(--gold); }
-        
-        .lb-row.rank-2 { border-left: 4px solid var(--silver); }
-        .lb-row.rank-2 .rank-num { color: var(--silver); }
-        
+        .lb-row.rank-2 { border-left: 4px solid var(--silver); } 
         .lb-row.rank-3 { border-left: 4px solid var(--bronze); }
-        .lb-row.rank-3 .rank-num { color: var(--bronze); }
+        .top-10-tag { font-size: 0.6rem; background: rgba(255, 62, 62, 0.2); color: var(--accent); padding: 2px 6px; border: 1px solid var(--accent); margin-left: 10px; }
 
-        /* Top 10 Particle Tag */
-        .top-10-tag { 
-            font-size: 0.6rem; background: rgba(255, 62, 62, 0.2); color: var(--accent); 
-            padding: 2px 6px; border-radius: 4px; border: 1px solid var(--accent); margin-left: 10px;
-            box-shadow: 0 0 5px var(--accent-glow);
+        .stats-hero { margin-top: 3rem; display: flex; flex-direction: column; align-items: center; }
+        .search-wrapper { display:flex; gap:10px; margin-bottom:3rem; width: 100%; max-width: 600px; }
+        .search-input { 
+            width: 100%; padding:1rem; background:rgba(0,0,0,0.5); border:1px solid #333; 
+            color:white; outline:none; font-family: 'Share Tech Mono'; font-size: 1.2rem; transition: 0.3s;
         }
-
-        /* --- STATS PROFILE --- */
-        .profile-container { display: grid; grid-template-columns: 300px 1fr; gap: 3rem; display: none; }
+        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+        
+        .profile-container { display: grid; grid-template-columns: 300px 1fr; gap: 3rem; display: none; width: 100%; }
         .profile-container.visible { display: grid; }
-        .skin-viewer { height: 400px; background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%); display: flex; justify-content: center; align-items: center; border: var(--panel-border); }
-        .skin-img { height: 90%; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); transition: 0.3s; }
+        
+        .skin-viewer { 
+            height: 450px; background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%); 
+            display: flex; justify-content: center; align-items: center; border: var(--panel-border); 
+            position: relative;
+        }
+        .skin-img { 
+            height: 90%; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.6)); 
+            animation: float 4s ease-in-out infinite; 
+            transition: transform 0.3s;
+        }
+        .skin-img:hover { transform: scale(1.05); }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
+
+        .player-data { width: 100%; }
         .stats-big-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 3rem; }
-        .big-stat { background: rgba(255,255,255,0.03); padding: 1.5rem; border-left: 3px solid var(--text-dim); }
+        .big-stat { background: rgba(255,255,255,0.03); padding: 1.5rem; border-left: 3px solid var(--text-dim); transition: 0.3s; }
+        .big-stat:hover { background: rgba(255,255,255,0.05); transform: translateY(-2px); }
         .big-stat.accent { border-color: var(--accent); }
         .big-stat-val { font-size: 2.5rem; font-family: 'Share Tech Mono'; }
 
-        /* Footer */
         footer { margin-top: auto; border-top: var(--panel-border); padding: 2rem 0; text-align: center; color: #444; font-size: 0.8rem; }
-
-        @media (max-width: 900px) { .content-row, .profile-container { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) { .content-row, .profile-container { grid-template-columns: 1fr; } .hero h1 { font-size: 3rem; } }
     </style>
 </head>
 <body>
 
-    <!-- TOAST NOTIFICATION -->
     <div id="toast-box">
-        <i class="fas fa-check-circle toast-icon"></i>
+        <i class="fas fa-check-circle toast-icon" style="color:var(--accent); font-size:1.5rem;"></i>
         <div>
             <div style="font-weight: bold; color: white;">IP Copied!</div>
             <div style="font-size: 0.8rem; color: #aaa;">See you on the battlefield.</div>
@@ -175,13 +200,12 @@
         </div>
     </nav>
 
-    <!-- === HOME === -->
     <div id="home-page" class="page-section active">
         <div class="container">
             <section class="hero">
                 <div>
                     <h1>High Fidelity<br>Combat</h1>
-                    <p>Directional blocking, parrying, and ranked matchmaking.</p>
+                    <p>Experience the next generation of Minecraft PvP. <br>Directional blocking, parrying, and ranked matchmaking.</p>
                     <button class="cta-btn" onclick="copyIP()">PLAY.SLASHUP.NET</button>
                 </div>
             </section>
@@ -189,26 +213,33 @@
             <div class="content-row">
                 <div class="panel-box">
                     <div class="section-title">Latest Updates</div>
-                    <div style="margin-bottom: 1.5rem; border-bottom: 1px dashed #333; padding-bottom: 1rem;">
-                        <div style="color:#888; font-size:0.8rem;">DEC 1, 2025</div>
-                        <div style="font-size:1.2rem; margin:5px 0;">Multi-Directional Dash Update</div>
-                        <p style="color:#888; font-size:0.9rem;">Dashing now supports W+D diagonals. Fixed void damage bug.</p>
+                    
+                    <div class="news-item">
+                        <div class="news-date">DEC 1, 2025</div>
+                        <div class="news-head">Multi-Directional Dash & Bug Fixes | v0.2</div>
+                        <p style="color: #888; font-size: 0.9rem;">Dashing now supports W+D diagonals for better evasion. Killer health is now displayed in death messages. Fixed a critical bug where contracts didn't award shards.</p>
+                    </div>
+
+                    <div class="news-item">
+                        <div class="news-date">NOV 29, 2025</div>
+                        <div class="news-head">Contracts, Balancing & Duels | v0.1</div>
+                        <p style="color: #888; font-size: 0.9rem;">Added 1v1 Duels with Elo logic. Daily Contracts system is live. Adjusted damage priority for the Katana weapon art.</p>
                     </div>
                 </div>
 
                 <div class="mech-grid">
                     <div class="tilt-card">
-                        <i class="fas fa-shield-alt" style="font-size:1.5rem; color:var(--accent);"></i>
+                        <i class="fas fa-shield-alt" style="font-size:1.5rem; color:var(--accent); margin-bottom:10px;"></i>
                         <h3>Parry</h3>
-                        <p style="color:#666; font-size:0.8rem;">Press F to stun.</p>
+                        <p style="color:#666; font-size:0.8rem;">Press F within 0.3s to stun.</p>
                     </div>
                     <div class="tilt-card">
-                        <i class="fas fa-wind" style="font-size:1.5rem; color:var(--accent);"></i>
+                        <i class="fas fa-wind" style="font-size:1.5rem; color:var(--accent); margin-bottom:10px;"></i>
                         <h3>Dash</h3>
                         <p style="color:#666; font-size:0.8rem;">Q + WASD to evade.</p>
                     </div>
                     <div class="tilt-card">
-                        <i class="fas fa-bolt" style="font-size:1.5rem; color:var(--accent);"></i>
+                        <i class="fas fa-bolt" style="font-size:1.5rem; color:var(--accent); margin-bottom:10px;"></i>
                         <h3>Clash</h3>
                         <p style="color:#666; font-size:0.8rem;">Sparks fly on impact.</p>
                     </div>
@@ -217,7 +248,6 @@
         </div>
     </div>
 
-    <!-- === LEADERBOARD === -->
     <div id="leaderboard-page" class="page-section">
         <div class="container">
             <h1 style="text-align:center; margin: 3rem 0;">GLOBAL RANKINGS</h1>
@@ -235,12 +265,10 @@
                         <th>Player</th>
                         <th>Wins</th>
                         <th>K/D</th>
-                        <th>Streak</th>
+                        <th>Best Streak</th>
                     </tr>
                 </thead>
-                <tbody id="lb-body">
-                    <!-- JS Fills this -->
-                </tbody>
+                <tbody id="lb-body"></tbody>
             </table>
         </div>
     </div>
@@ -249,36 +277,52 @@
     <div id="stats-page" class="page-section">
         <div class="container stats-hero">
             <h1 style="margin: 3rem 0;">PLAYER DATABASE</h1>
-            <div style="display:flex; gap:10px; margin-bottom:3rem;">
-                <input type="text" id="playerInput" style="padding:1rem; background:rgba(0,0,0,0.5); border:1px solid #333; color:white; outline:none;" placeholder="Username...">
+            
+            <div class="search-wrapper">
+                <input type="text" id="playerInput" class="search-input" placeholder="Search Username..." value="HugeAdventure">
                 <button class="cta-btn" onclick="fetchStats()" style="padding:0 2rem;"><i class="fas fa-search"></i></button>
             </div>
 
             <div class="profile-container" id="profileDisplay">
-                <div class="skin-viewer"><img src="" id="skinImg" class="skin-img"></div>
+                <div class="skin-viewer">
+                    <img src="" id="skinImg" class="skin-img" alt="Player Skin">
+                </div>
+
                 <div class="player-data">
                     <div style="margin-bottom:2rem;">
                         <h2 id="nameDisplay">Player</h2>
                         <span class="rank-badge" id="rankDisplay" style="background:var(--gold); color:black; padding:2px 8px; font-weight:bold;"># -</span>
                     </div>
+
                     <div class="stats-big-grid">
-                        <div class="big-stat accent"><div style="font-size:0.8rem; color:#888;">K/D RATIO</div><div class="big-stat-val" id="kdrVal">-</div></div>
-                        <div class="big-stat"><div style="font-size:0.8rem; color:#888;">WINS</div><div class="big-stat-val" id="winsVal">-</div></div>
-                        <div class="big-stat"><div style="font-size:0.8rem; color:#888;">STREAK</div><div class="big-stat-val" id="streakVal">-</div></div>
+                        <div class="big-stat accent">
+                            <div style="font-size:0.8rem; color:#888; margin-bottom:5px;">K/D RATIO</div>
+                            <div class="big-stat-val" id="kdrVal">-</div>
+                        </div>
+                        <div class="big-stat">
+                            <div style="font-size:0.8rem; color:#888; margin-bottom:5px;">TOTAL WINS</div>
+                            <div class="big-stat-val" id="winsVal">-</div>
+                        </div>
+                        <div class="big-stat">
+                            <div style="font-size:0.8rem; color:#888; margin-bottom:5px;">BEST STREAK</div>
+                            <div class="big-stat-val" id="streakVal">-</div>
+                        </div>
                     </div>
+
                     <div class="panel-box">
                         <div class="section-title" style="font-size:1rem;">Recent Matches</div>
-                        <table class="lb-table"><tbody id="matchHistoryBody"></tbody></table>
+                        <table class="lb-table">
+                            <tbody id="matchHistoryBody"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <footer><div class="container">&copy; 2025 SlashUp PvP.</div></footer>
+    <footer><div class="container">&copy; 2025 SlashUp PvP. Not affiliated with Mojang AB.</div></footer>
 
     <script>
-        // --- TILT EFFECT LOGIC ---
         document.querySelectorAll('.tilt-card').forEach(card => {
             card.addEventListener('mousemove', (e) => {
                 const rect = card.getBoundingClientRect();
@@ -286,19 +330,15 @@
                 const y = e.clientY - rect.top;
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
-                
-                const rotateX = ((y - centerY) / centerY) * -10; // Max 10deg rotation
+                const rotateX = ((y - centerY) / centerY) * -10;
                 const rotateY = ((x - centerX) / centerX) * 10;
-
                 card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
             });
-
             card.addEventListener('mouseleave', () => {
                 card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
             });
         });
 
-        // --- NAVIGATION ---
         function switchTab(tab) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -307,7 +347,6 @@
             if(tab === 'leaderboard') loadLeaderboard(1);
         }
 
-        // --- TOAST NOTIFICATION ---
         function copyIP() {
             navigator.clipboard.writeText("play.slashup.net");
             const toast = document.getElementById("toast-box");
@@ -315,9 +354,7 @@
             setTimeout(() => toast.classList.remove("show"), 3000);
         }
 
-        // --- LEADERBOARD LOGIC ---
         let currentLbPage = 1;
-        
         async function loadLeaderboard(page) {
             currentLbPage = page;
             document.getElementById('lb-page-num').innerText = `PAGE ${page}`;
@@ -330,18 +367,14 @@
                 tbody.innerHTML = '';
 
                 let rankCounter = (page - 1) * 20 + 1;
-
                 data.players.forEach(p => {
                     let rankClass = '';
                     let extraTag = '';
-                    
                     if(rankCounter === 1) rankClass = 'rank-1';
                     else if(rankCounter === 2) rankClass = 'rank-2';
                     else if(rankCounter === 3) rankClass = 'rank-3';
                     
-                    if(rankCounter > 3 && rankCounter <= 10) {
-                        extraTag = `<span class="top-10-tag">TOP 10</span>`;
-                    }
+                    if(rankCounter > 3 && rankCounter <= 10) extraTag = `<span class="top-10-tag">TOP 10</span>`;
 
                     const row = `
                         <tr class="lb-row ${rankClass}">
@@ -355,13 +388,12 @@
                             </td>
                             <td style="color:var(--win); font-family:'Share Tech Mono'">${p.wins}</td>
                             <td style="font-family:'Share Tech Mono'">${parseFloat(p.kdr).toFixed(2)}</td>
-                            <td style="color:var(--gold); font-family:'Share Tech Mono'">${p.streak}</td>
+                            <td style="color:var(--gold); font-family:'Share Tech Mono'">${p.streak || 0}</td>
                         </tr>
                     `;
                     tbody.innerHTML += row;
                     rankCounter++;
                 });
-
             } catch (e) {
                 console.error(e);
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Failed to load leaderboard.</td></tr>';
@@ -373,7 +405,6 @@
             loadLeaderboard(currentLbPage + dir);
         }
 
-        // --- STATS LOGIC ---
         async function fetchStats() {
             const username = document.getElementById('playerInput').value;
             if(!username) return;
@@ -390,7 +421,7 @@
 
                 document.getElementById('kdrVal').innerText = parseFloat(data.stats.kdr).toFixed(2);
                 document.getElementById('winsVal').innerText = data.stats.wins;
-                document.getElementById('streakVal').innerText = data.stats.streak;
+                document.getElementById('streakVal').innerText = data.stats.best_streak;
                 document.getElementById('rankDisplay').innerText = `#${data.stats.rank}`;
 
                 const historyBody = document.getElementById('matchHistoryBody');
