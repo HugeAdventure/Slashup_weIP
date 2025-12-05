@@ -60,7 +60,49 @@
             z-index: -1; 
             pointer-events: none;
         }
+
+        /* search autocomplete*/
         
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        #suggestions-box {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: var(--panel);
+            border: 1px solid #333;
+            border-top: none;
+            z-index: 1000;
+            display: none; 
+        }
+        
+        .suggestion-item {
+            padding: 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .suggestion-item:hover {
+            background: rgba(255, 62, 62, 0.1);
+            color: var(--accent);
+            padding-left: 1.5rem;
+        }
+        
+        .sug-head {
+            width: 24px; 
+            height: 24px; 
+            border-radius: 3px;
+        }
+
         /* --- NAVIGATION --- */
         nav {
             background: rgba(11, 11, 16, 0.9); backdrop-filter: blur(10px);
@@ -458,8 +500,11 @@
             <h1 style="margin: 3rem 0;">PLAYER DATABASE</h1>
             
             <div class="search-wrapper">
-                <input type="text" id="playerInput" class="search-input" placeholder="Search Username..." value="HugeAdventure">
-                <button class="cta-btn" onclick="fetchStats()" style="padding:0 2rem;"><i class="fas fa-search"></i></button>
+                <div class="search-container">
+                    <input type="text" id="playerInput" class="search-input" placeholder="Search Username..." autocomplete="off">
+                    <div id="suggestions-box"></div>
+                </div>
+                <button class="cta-btn" onclick="fetchStats()" style="padding:0 2rem; margin:0;"><i class="fas fa-search"></i></button>
             </div>
 
             <div class="profile-container" id="profileDisplay">
@@ -616,6 +661,15 @@
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(tab + '-page').classList.add('active');
             document.getElementById('btn-' + tab).classList.add('active');
+            
+            // --- HIDE FOOTER ON STATS PAGE ---
+            const footer = document.querySelector('footer');
+            if (tab === 'stats') {
+                footer.style.display = 'none';
+            } else {
+                footer.style.display = 'block';
+            }
+        
             if(tab === 'leaderboard') loadLeaderboard(1);
         }
 
@@ -903,6 +957,63 @@
         
         initParticles();
         animateParticles();
+
+        // --- AUTOCOMPLETE LOGIC ---
+        const input = document.getElementById('playerInput');
+        const box = document.getElementById('suggestions-box');
+        let debounceTimer;
+        
+        input.addEventListener('input', function() {
+            const val = this.value;
+            
+            // Clear old timer
+            clearTimeout(debounceTimer);
+            
+            if (val.length < 2) {
+                box.style.display = 'none';
+                return;
+            }
+        
+            // Wait 300ms after typing stops before calling API (Saves resources)
+            debounceTimer = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/api/search?q=${val}`);
+                    const names = await res.json();
+                    
+                    box.innerHTML = '';
+                    
+                    if (names.length > 0) {
+                        box.style.display = 'block';
+                        names.forEach(n => {
+                            const div = document.createElement('div');
+                            div.className = 'suggestion-item';
+                            // Show small face + name
+                            div.innerHTML = `
+                                <img src="https://visage.surgeplay.com/face/32/${n.name}" class="sug-head">
+                                <span>${n.name}</span>
+                            `;
+                            div.onclick = () => {
+                                input.value = n.name;
+                                box.style.display = 'none';
+                                fetchStats(); // Auto search on click
+                            };
+                            box.appendChild(div);
+                        });
+                    } else {
+                        box.style.display = 'none';
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }, 300);
+        });
+        
+        // Close suggestions if clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target !== input && e.target !== box) {
+                box.style.display = 'none';
+            }
+        });
         
     </script>
 </body>
