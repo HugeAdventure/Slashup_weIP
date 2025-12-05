@@ -404,8 +404,8 @@
         </div>
     </div>
 
-    <!-- ===  === -->
-    <div id="-page" class="page-section">
+    <!-- === LEADERBOARD === -->
+    <div id="leaderboard-page" class="page-section">
         <div class="container">
             <h1 style="text-align:center; margin: 3rem 0;">GLOBAL RANKINGS</h1>
             
@@ -574,7 +574,7 @@
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(tab + '-page').classList.add('active');
             document.getElementById('btn-' + tab).classList.add('active');
-            if(tab === '') load(1);
+            if(tab === 'leaderboard') loadLeaderboard(1);
         }
 
         // --- DIRECT LINK HANDLER ---
