@@ -47,6 +47,77 @@
             background-size: 100% 4px; pointer-events: none; z-index: 999;
         }
 
+        /* --- NEW MATCH HISTORY CARDS --- */
+        .match-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .match-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1rem 1.5rem;
+            border-left: 4px solid #555; /* Default */
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .match-card:hover {
+            transform: translateX(5px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+/* Win/Loss Variants */
+        .match-card.win {
+            border-left-color: var(--win);
+            background: linear-gradient(90deg, rgba(68, 255, 68, 0.05) 0%, transparent 100%);
+        }
+
+        .match-card.loss {
+            border-left-color: var(--loss);
+            background: linear-gradient(90deg, rgba(255, 68, 68, 0.05) 0%, transparent 100%);
+        }
+
+        /* Inner Layout */
+        .match-outcome {
+            font-family: 'Share Tech Mono';
+            font-size: 1.2rem;
+            font-weight: bold;
+            width: 100px;
+        }
+        .match-card.win .match-outcome { color: var(--win); text-shadow: 0 0 10px rgba(68, 255, 68, 0.3); }
+        .match-card.loss .match-outcome { color: var(--loss); text-shadow: 0 0 10px rgba(255, 68, 68, 0.3); }
+
+        .match-vs {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-grow: 1;
+            margin-left: 2rem;
+        }
+
+        .opponent-head {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .opponent-name {
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        .match-date {
+            font-family: 'Share Tech Mono';
+            font-size: 0.8rem;
+            color: #666;
+        }
+
         .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; width: 100%; }
 
         /* --- NAVIGATION --- */
@@ -359,9 +430,8 @@
 
                     <div class="panel-box">
                         <div class="section-title" style="font-size:1rem;">Recent Matches</div>
-                        <table class="lb-table">
-                            <tbody id="matchHistoryBody"></tbody>
-                        </table>
+                        <div id="matchHistoryList" class="match-list">
+                        </div>
                     </div>
                 </div>
             </div>
