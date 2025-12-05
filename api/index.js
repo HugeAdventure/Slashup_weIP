@@ -1,6 +1,6 @@
-import mysql from 'mysql2/promise';
+const mysql = require('mysql2/promise');
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
@@ -12,6 +12,7 @@ export default async function handler(req, res) {
   }
 
   const { player } = req.query;
+  console.log(`[API] Received request for player: ${player}`);
 
   if (!player) {
     return res.status(400).json({ error: 'No player specified' });
@@ -19,13 +20,18 @@ export default async function handler(req, res) {
 
   let connection;
   try {
+    console.log("[API] Connecting to Database...");
+    
     connection = await mysql.createConnection({
       host: 'uk02-sql.pebblehost.com',
       user: 'customer_1134473_Slashup',
       password: 'ZXC8^be^+^lVBZ+IIomjAyh9',
       database: 'customer_1134473_Slashup',
-      port: 3306
+      port: 3306,
+      connectTimeout: 10000
     });
+
+    console.log("[API] Connected! Fetching stats...");
 
     const [statsRows] = await connection.execute(
       'SELECT * FROM slashup_stats WHERE name = ?',
@@ -33,6 +39,7 @@ export default async function handler(req, res) {
     );
 
     if (statsRows.length === 0) {
+      console.log("[API] Player not found in DB.");
       await connection.end();
       return res.status(404).json({ error: 'Player not found' });
     }
@@ -43,6 +50,7 @@ export default async function handler(req, res) {
     );
 
     await connection.end();
+    console.log("[API] Success! Sending data.");
 
     res.status(200).json({
       stats: statsRows[0],
@@ -50,8 +58,8 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
+    console.error("[API ERROR]", error);
     if(connection) await connection.end();
-    console.error(error);
-    res.status(500).json({ error: 'Database connection failed' });
+    res.status(500).json({ error: 'Database Error: ' + error.message });
   }
-}
+};
