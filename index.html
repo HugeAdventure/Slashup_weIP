@@ -48,6 +48,19 @@
 
         .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; width: 100%; }
 
+
+        /* Background Canvas */
+        
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; 
+            pointer-events: none;
+        }
+        
         /* --- NAVIGATION --- */
         nav {
             background: rgba(11, 11, 16, 0.9); backdrop-filter: blur(10px);
@@ -296,6 +309,7 @@
     </style>
 </head>
 <body>
+    <canvas id="bg-canvas"></canvas>
 
     <div id="toast-box">
         <i class="fas fa-check-circle toast-icon" style="color:var(--accent); font-size:1.5rem;"></i>
@@ -825,6 +839,71 @@
             }
         }
         reveal();
+
+        // --- BACKGROUND PARTICLES (EMBERS) ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+        
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + Math.random() * 100; // Start below screen
+                this.size = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 1 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.1;
+                this.fade = Math.random() * 0.002 + 0.001;
+            }
+        
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                this.opacity -= this.fade;
+        
+                if (this.opacity <= 0 || this.y < 0) {
+                    this.reset();
+                }
+            }
+        
+            draw() {
+                ctx.fillStyle = `rgba(255, 62, 62, ${this.opacity})`; // Your Accent Red
+                ctx.beginPath();
+                ctx.rect(this.x, this.y, this.size, this.size); // Square "pixels" fit the MC theme
+                ctx.fill();
+            }
+        }
+        
+        function initParticles() {
+            // Create 50 particles
+            for (let i = 0; i < 50; i++) {
+                particles.push(new Particle());
+            }
+        }
+        
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        
+        initParticles();
+        animateParticles();
+        
     </script>
 </body>
 </html>
