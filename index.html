@@ -449,38 +449,37 @@
             </div>
 
             <div class="profile-container" id="profileDisplay">
+                <!-- Left: Skin -->
                 <div class="skin-viewer">
                     <img src="" id="skinImg" class="skin-img" alt="Player Skin">
                 </div>
 
-                <div style="margin-bottom:2rem; display:flex; justify-content:space-between; align-items:flex-end;">
-                <div>
-                    <div style="display:flex; align-items:center; gap: 10px;">
-                        <h2 style="display:inline-block; margin:0;" id="nameDisplay">Player</h2>
-                        <span id="tagDisplay"></span> 
-                        <button class="share-btn" onclick="shareProfile()" title="Copy Profile Link">
-                            <i class="fas fa-share-alt"></i>
-                        </button>
-                    </div>
-            
-                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 15px;">
-                        <span class="rank-badge" id="rankDisplay" style="background:var(--panel); color:var(--text-dim); border:1px solid var(--text-dim); padding:2px 8px; font-weight:bold;"># -</span>
+                <!-- Right: Data -->
+                <div class="player-data">
                     
-                            <div style="color: var(--text-dim); font-size: 0.9rem; font-family: 'Share Tech Mono';">
-                                <i class="far fa-eye" style="margin-right: 5px;"></i>
-                                <span id="viewCount">0</span>
+                    <!-- Header: Name, Tag, Share, Rank, Views -->
+                    <div style="margin-bottom:2rem; display:flex; justify-content:space-between; align-items:flex-end;">
+                        <div>
+                            <div style="display:flex; align-items:center; gap: 10px;">
+                                <h2 style="display:inline-block; margin:0;" id="nameDisplay">Player</h2>
+                                <span id="tagDisplay"></span> 
+                                <button class="share-btn" onclick="shareProfile()" title="Copy Profile Link">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
                             </div>
-            
-                            <button class="share-btn" onclick="shareProfile()" title="Copy Profile Link">
-                                <i class="fas fa-share-alt"></i>
-                            </button>
-            
-                            <div style="margin-top: 5px;">
+                    
+                            <div style="margin-top: 10px; display: flex; align-items: center; gap: 15px;">
                                 <span class="rank-badge" id="rankDisplay" style="background:var(--panel); color:var(--text-dim); border:1px solid var(--text-dim); padding:2px 8px; font-weight:bold;"># -</span>
+                            
+                                <div style="color: var(--text-dim); font-size: 0.9rem; font-family: 'Share Tech Mono';">
+                                    <i class="far fa-eye" style="margin-right: 5px;"></i>
+                                    <span id="viewCount">0</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Big Stats Grid -->
                     <div class="stats-big-grid">
                         <div class="big-stat accent">
                             <div style="font-size:0.8rem; color:#888; margin-bottom:5px;">K/D RATIO</div>
@@ -508,15 +507,13 @@
                         </div>
                     </div>
 
+                    <!-- Match History -->
                     <div class="panel-box">
                         <div class="section-title" style="font-size:1rem;">Recent Matches</div>
                         <div id="matchHistoryList" class="match-list"></div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
     <footer>
         <div class="container" style="display:flex; justify-content:space-between; align-items:center; padding: 2rem 0;">
         
