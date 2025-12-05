@@ -261,7 +261,7 @@
         
         .mech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
 
-        /* --- LEADERBOARD --- */
+        /* ---  --- */
         .lb-controls { display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center; }
         .lb-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
         .lb-table th { text-align: left; padding: 1rem; color: var(--text-dim); text-transform: uppercase; font-size: 0.8rem; }
@@ -345,7 +345,7 @@
             </div>
             <div class="nav-links">
                 <button class="nav-btn active" onclick="switchTab('home')" id="btn-home">HOME</button>
-                <button class="nav-btn" onclick="switchTab('leaderboard')" id="btn-leaderboard">LEADERBOARD</button>
+                <button class="nav-btn" onclick="switchTab('')" id="btn-"></button>
                 <button class="nav-btn" onclick="switchTab('stats')" id="btn-stats">STATS</button>
                 <button class="nav-btn" onclick="copyIP()" style="color: #44ff44;">COPY IP</button>
             </div>
@@ -401,8 +401,8 @@
         </div>
     </div>
 
-    <!-- === LEADERBOARD === -->
-    <div id="leaderboard-page" class="page-section">
+    <!-- ===  === -->
+    <div id="-page" class="page-section">
         <div class="container">
             <h1 style="text-align:center; margin: 3rem 0;">GLOBAL RANKINGS</h1>
             
@@ -571,7 +571,7 @@
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(tab + '-page').classList.add('active');
             document.getElementById('btn-' + tab).classList.add('active');
-            if(tab === 'leaderboard') loadLeaderboard(1);
+            if(tab === '') load(1);
         }
 
         // --- DIRECT LINK HANDLER ---
@@ -593,18 +593,19 @@
             setTimeout(() => toast.classList.remove("show"), 3000);
         }
 
-        // --- LEADERBOARD LOGIC ---
+        // ---  LOGIC ---
         let currentLbPage = 1;
         let totalLbPages = 1;
 
         async function loadLeaderboard(page) {
             currentLbPage = page;
             document.getElementById('lb-page-num').innerText = `PAGE ${page}`;
-            
+    
             const prevBtn = document.getElementById('lb-prev');
             const nextBtn = document.getElementById('lb-next');
+    
             if(page === 1) prevBtn.classList.add('disabled'); else prevBtn.classList.remove('disabled');
-            
+    
             const tbody = document.getElementById('lb-body');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#888;">Loading...</td></tr>';
 
@@ -612,44 +613,50 @@
                 const res = await fetch(`/api/leaderboard?page=${page}`);
                 const data = await res.json();
                 tbody.innerHTML = '';
-                
+        
                 totalLbPages = data.totalPages;
                 if(page >= totalLbPages) nextBtn.classList.add('disabled'); else nextBtn.classList.remove('disabled');
 
                 let rankCounter = (page - 1) * 20 + 1;
+        
                 data.players.forEach(p => {
-                    
                     let rankClass = '';
                     let extraTag = '';
                     if(rankCounter === 1) rankClass = 'rank-1';
                     else if(rankCounter === 2) rankClass = 'rank-2';
                     else if(rankCounter === 3) rankClass = 'rank-3';
-                    
+            
                     if(rankCounter > 3 && rankCounter <= 10) extraTag = `<span class="top-10-tag">TOP 10</span>`;
 
-                let specialTag = '';
-                if(SPECIAL_TAGS[p.name.toLowerCase()]) {
-                    const t = SPECIAL_TAGS[p.name.toLowerCase()];
-                    specialTag = `<span class="player-tag ${t.class}" style="font-size:0.5rem; margin-left:5px;">${t.text}</span>`;
-                }
+                    let specialTag = '';
+                    if(p.name && SPECIAL_TAGS[p.name.toLowerCase()]) {
+                        const t = SPECIAL_TAGS[p.name.toLowerCase()];
+                        specialTag = `<span class="player-tag ${t.class}" style="font-size:0.5rem; margin-left:5px;">${t.text}</span>`;
+                    }
 
-                const row = `
-                    <tr class="lb-row ${rankClass}">
-                        <td class="rank-num">#${rankCounter}</td>
-                        <td>
-                            <div class="player-cell">
-                                <img src="https://visage.surgeplay.com/face/64/${p.name}" class="lb-head">
-                                <div>
-                                    <span style="font-weight:bold; font-size:1.1rem;">${p.name}</span>
-                                    ${specialTag} <!-- Insert Tag Here -->
-                                    ${extraTag}   <!-- Insert Top 10 Tag Here -->
+                    const row = `
+                        <tr class="lb-row ${rankClass}">
+                            <td class="rank-num">#${rankCounter}</td>
+                            <td>
+                                <div class="player-cell">
+                                    <img src="https://visage.surgeplay.com/face/64/${p.name}" class="lb-head">
+                                    <div>
+                                        <span style="font-weight:bold; font-size:1.1rem;">${p.name}</span>
+                                        ${specialTag} <!-- Owner/Admin Tag -->
+                                        ${extraTag}   <!-- Top 10 Tag -->
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
+                            </td>
+                            <td style="color:var(--win); font-family:'Share Tech Mono'">${p.wins}</td>
+                            <td style="font-family:'Share Tech Mono'">${parseFloat(p.kdr).toFixed(2)}</td>
+                            <td style="color:var(--gold); font-family:'Share Tech Mono'">${p.best_streak || 0}</td>
+                        </tr>
                     `;
+            
                     tbody.innerHTML += row;
                     rankCounter++;
                 });
+
             } catch (e) {
                 console.error(e);
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Failed to load leaderboard.</td></tr>';
