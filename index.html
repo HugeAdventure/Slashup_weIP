@@ -878,6 +878,35 @@
         let totalLbPages = 1;
         let currentLbSort = 'wins';
 
+        // --- LEADERBOARD LOGIC ---
+        let currentLbPage = 1;
+        let totalLbPages = 1;
+        let currentLbSort = 'wins'; // Default sort
+        
+        // 1. SWITCH CATEGORY (The Tabs)
+        function switchLbCategory(category) {
+            if(currentLbSort === category) return; // Don't reload if already active
+            
+            currentLbSort = category;
+            currentLbPage = 1; // Always reset to page 1 when changing filters
+            
+            // Update Button Styling (Set Active State)
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            // Map categories to button IDs
+            const btnIdMap = {
+                'wins': 'sort-wins',
+                'kdr': 'sort-kdr',
+                'kills': 'sort-kills',
+                'streak': 'sort-streak' // Maps to 'streak' or 'best_streak' depending on preference
+            };
+            const btnId = btnIdMap[category] || 'sort-wins';
+            const btn = document.getElementById(btnId);
+            if(btn) btn.classList.add('active');
+            
+            loadLeaderboard(1);
+        }
+        
+        // 2. LOAD DATA
         async function loadLeaderboard(page) {
             currentLbPage = page;
             document.getElementById('lb-page-num').innerText = `PAGE ${page}`;
@@ -887,56 +916,63 @@
             if(page === 1) prevBtn.classList.add('disabled'); else prevBtn.classList.remove('disabled');
         
             const tbody = document.getElementById('lb-body');
+            // Simple loading text while fetching
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#888; padding:2rem;">Accessing Database...</td></tr>';
         
             try {
+                // Send the sort parameter to the API
                 const res = await fetch(`/api/leaderboard?page=${page}&sort=${currentLbSort}`);
                 const data = await res.json();
                 
-                // ERROR HANDLING: If the API sent an error, show it!
-                if(data.error) {
-                    console.error("API Error:", data.error);
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--loss);">SERVER ERROR: ${data.error}</td></tr>`;
-                    return;
-                }
-        
                 tbody.innerHTML = '';
-                totalLbPages = data.totalPages || 1;
+                totalLbPages = data.totalPages || 1; // Safety fallback
                 
                 if(page >= totalLbPages) nextBtn.classList.add('disabled'); else nextBtn.classList.remove('disabled');
-        
-                let rankCounter = (page - 1) * 20 + 1;
         
                 if(!data.players || data.players.length === 0) {
                      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#666;">No players found.</td></tr>`;
                      return;
                 }
         
+                let rankCounter = (page - 1) * 20 + 1;
+        
                 data.players.forEach(p => {
                     let rankClass = '';
                     let extraTag = '';
                     
+                    // Top 3 Rank Colors
                     if(rankCounter === 1) rankClass = 'rank-1';
                     else if(rankCounter === 2) rankClass = 'rank-2';
                     else if(rankCounter === 3) rankClass = 'rank-3';
+                    
                     if(rankCounter > 3 && rankCounter <= 10) extraTag = `<span class="top-10-tag">TOP 10</span>`;
         
+                    // Special Tags
                     let specialTag = '';
                     if(p.name && SPECIAL_TAGS[p.name.toLowerCase()]) {
                         const t = SPECIAL_TAGS[p.name.toLowerCase()];
                         specialTag = `<span class="player-tag ${t.class}" style="font-size:0.5rem; margin-left:5px;">${t.text}</span>`;
                     }
         
+                    // --- COLUMN HIGHLIGHTING LOGIC ---
+                    // This determines which number gets the "Red Glow" based on what you clicked
                     const hlWins = currentLbSort === 'wins' ? 'col-highlight' : '';
                     const hlKills = currentLbSort === 'kills' ? 'col-highlight' : '';
                     const hlKdr = currentLbSort === 'kdr' ? 'col-highlight' : '';
-                    const hlStreak = currentLbSort === 'streak' ? 'col-highlight' : '';
+                    // If sorting by 'streak' or 'best_streak', highlight the streak column
+                    const hlStreak = (currentLbSort === 'streak' || currentLbSort === 'best_streak') ? 'col-highlight' : '';
         
+                    // Format Data
                     const kdrVal = parseFloat(p.kdr || 0).toFixed(2);
+                    const killsVal = p.kills || 0; 
+                    const winsVal = p.wins || 0;
+                    const streakVal = p.best_streak || 0; // Or p.streak for current streak
+                    
+                    const delay = (rankCounter % 20) * 0.05; 
                     
                     const row = `
-                        <tr class="lb-row ${rankClass}">
-                            <td class="rank-num" style="text-align:center;">${rankCounter}</td>
+                        <tr class="lb-row ${rankClass}" style="opacity: 0; animation: lbSlideIn 0.3s ease-out forwards; animation-delay: ${delay}s;">
+                            <td class="rank-num">${rankCounter}</td>
                             <td>
                                 <div class="player-cell">
                                     <img src="https://visage.surgeplay.com/face/64/${p.name}" class="lb-head">
@@ -947,10 +983,11 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="${hlWins}" style="text-align:center; font-family:'Share Tech Mono'">${p.wins}</td>
-                            <td class="${hlKills}" style="text-align:center; font-family:'Share Tech Mono'">${p.kills || 0}</td>
-                            <td class="${hlKdr}" style="text-align:center; font-family:'Share Tech Mono'">${kdrVal}</td>
-                            <td class="${hlStreak}" style="text-align:center; color:var(--gold); font-family:'Share Tech Mono'">${p.best_streak || 0}</td>
+                            <!-- The classes below apply the glow to the active column -->
+                            <td class="${hlWins}" style="font-family:'Share Tech Mono'">${winsVal}</td>
+                            <td class="${hlKills}" style="font-family:'Share Tech Mono'">${killsVal}</td>
+                            <td class="${hlKdr}" style="font-family:'Share Tech Mono'">${kdrVal}</td>
+                            <td class="${hlStreak}" style="color:var(--gold); font-family:'Share Tech Mono'">${streakVal}</td>
                         </tr>
                     `;
             
@@ -962,6 +999,14 @@
                 console.error(e);
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--loss);">Connection Failed: ${e.message}</td></tr>`;
             }
+        }
+        
+        // 3. PAGINATION
+        function changeLbPage(dir) {
+            const newPage = currentLbPage + dir;
+            if (newPage < 1) return;
+            if (newPage > totalLbPages) return;
+            loadLeaderboard(newPage);
         }
 
         document.getElementById('playerInput').addEventListener('keypress', function (e) {
