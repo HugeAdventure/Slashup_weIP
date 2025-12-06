@@ -40,6 +40,11 @@
             flex-direction: column;
         }
 
+        @keyframes lbSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
         body::after {
             content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
@@ -826,9 +831,12 @@
                         specialTag = `<span class="player-tag ${t.class}" style="font-size:0.5rem; margin-left:5px;">${t.text}</span>`;
                     }
 
+                    const delay = (rankCounter % 20) * 0.05; 
+                    
                     const row = `
-                        <tr class="lb-row ${rankClass}">
+                        <tr class="lb-row ${rankClass}" style="opacity: 0; animation: lbSlideIn 0.3s ease-out forwards; animation-delay: ${delay}s;">
                             <td class="rank-num">#${rankCounter}</td>
+
                             <td>
                                 <div class="player-cell">
                                     <img src="https://visage.surgeplay.com/face/64/${p.name}" class="lb-head">
