@@ -785,70 +785,22 @@
     </footer>
 
     <script>
+        // --- GLOBAL VARIABLES ---
         const SPECIAL_TAGS = {
             "hugeadventure": { text: "OWNER", class: "tag-owner" },
             "admin_name":    { text: "ADMIN", class: "tag-admin" },
             "dev_name":      { text: "DEV",   class: "tag-dev" }
         };
-
-        // Global Charts
+    
         let myChart = null;
         let myRadar = null;
-
-        function shareProfile() {
-            const username = document.getElementById('nameDisplay').innerText;
-            if(username === "Player") return;
-            const url = `${window.location.origin}${window.location.pathname}?player=${username}`;
-            navigator.clipboard.writeText(url).then(() => {
-                const toast = document.getElementById("toast-box");
-                toast.innerHTML = `<i class="fas fa-link toast-icon"></i><div><div style="font-weight: bold; color: white;">Link Copied!</div><div style="font-size: 0.8rem; color: #aaa;">Share it with your friends.</div></div>`;
-                toast.classList.add("show");
-                setTimeout(() => toast.classList.remove("show"), 3000);
-            });
-        }
         
-        async function checkServerStatus() {
-            const ip = "194.164.96.27:25601"; 
-            const statusText = document.getElementById('server-status-text');
-            const statusDot = document.getElementById('status-dot');
-            try {
-                const res = await fetch(`https://api.mcstatus.io/v2/status/java/${ip}`);
-                const data = await res.json();
-                if(data.online) {
-                    statusDot.classList.remove('offline'); statusDot.classList.add('online');
-                    statusText.innerHTML = `<span class="status-dot online"></span> ${data.players.online}/${data.players.max} ONLINE`;
-                } else {
-                    statusText.innerHTML = `<span class="status-dot offline"></span> OFFLINE`;
-                }
-            } catch (e) { console.log("Status check failed"); }
-        }
-        checkServerStatus(); 
-
-        document.querySelectorAll('.tilt-card').forEach(card => {
-            card.addEventListener('mousemove', (e) => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                const rotateX = ((y - centerY) / centerY) * -10;
-                const rotateY = ((x - centerX) / centerX) * 10;
-                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
-            });
-            card.addEventListener('mouseleave', () => card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)');
-        });
-
-        function switchTab(tab) {
-            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tab + '-page').classList.add('active');
-            document.getElementById('btn-' + tab).classList.add('active');
-            
-            const footer = document.querySelector('footer');
-            footer.style.display = (tab === 'stats') ? 'none' : 'block';
-            if(tab === 'leaderboard') loadLeaderboard(1);
-        }
-
+        // Leaderboard State
+        let currentLbPage = 1;
+        let totalLbPages = 1;
+        let currentLbSort = 'wins'; 
+    
+        // --- INITIALIZATION ---
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const playerParam = urlParams.get('player');
@@ -862,51 +814,41 @@
             animateParticles();
             loadGlobalFeed();
             updateRecent();
-            // Start feed interval
+            
+            // Load Leaderboard Page 1 on start
+            loadLeaderboard(1);
+            
+            // Start live feed loop
             setInterval(loadGlobalFeed, 30000);
         }
-
-        function copyIP() {
-            navigator.clipboard.writeText("play.slashup.net");
-            const toast = document.getElementById("toast-box");
-            toast.innerHTML = `<i class="fas fa-check-circle toast-icon"></i><div><div style="font-weight: bold; color: white;">IP Copied!</div><div style="font-size: 0.8rem; color: #aaa;">See you on the battlefield.</div></div>`;
-            toast.classList.add("show");
-            setTimeout(() => toast.classList.remove("show"), 3000);
+    
+        // --- TAB NAVIGATION ---
+        function switchTab(tab) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab + '-page').classList.add('active');
+            document.getElementById('btn-' + tab).classList.add('active');
+            
+            const footer = document.querySelector('footer');
+            footer.style.display = (tab === 'stats') ? 'none' : 'block';
         }
-
-        let currentLbPage = 1;
-        let totalLbPages = 1;
-        let currentLbSort = 'wins';
-
+    
         // --- LEADERBOARD LOGIC ---
-        let currentLbPage = 1;
-        let totalLbPages = 1;
-        let currentLbSort = 'wins'; // Default sort
-        
-        // 1. SWITCH CATEGORY (The Tabs)
         function switchLbCategory(category) {
-            if(currentLbSort === category) return; // Don't reload if already active
+            if(currentLbSort === category) return; 
             
             currentLbSort = category;
-            currentLbPage = 1; // Always reset to page 1 when changing filters
+            currentLbPage = 1; // Reset to page 1
             
-            // Update Button Styling (Set Active State)
+            // Update Buttons
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            // Map categories to button IDs
-            const btnIdMap = {
-                'wins': 'sort-wins',
-                'kdr': 'sort-kdr',
-                'kills': 'sort-kills',
-                'streak': 'sort-streak' // Maps to 'streak' or 'best_streak' depending on preference
-            };
-            const btnId = btnIdMap[category] || 'sort-wins';
-            const btn = document.getElementById(btnId);
+            const btnIdMap = {'wins': 'sort-wins', 'kdr': 'sort-kdr', 'kills': 'sort-kills', 'streak': 'sort-streak'};
+            const btn = document.getElementById(btnIdMap[category]);
             if(btn) btn.classList.add('active');
             
             loadLeaderboard(1);
         }
         
-        // 2. LOAD DATA
         async function loadLeaderboard(page) {
             currentLbPage = page;
             document.getElementById('lb-page-num').innerText = `PAGE ${page}`;
@@ -916,16 +858,14 @@
             if(page === 1) prevBtn.classList.add('disabled'); else prevBtn.classList.remove('disabled');
         
             const tbody = document.getElementById('lb-body');
-            // Simple loading text while fetching
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#888; padding:2rem;">Accessing Database...</td></tr>';
         
             try {
-                // Send the sort parameter to the API
                 const res = await fetch(`/api/leaderboard?page=${page}&sort=${currentLbSort}`);
                 const data = await res.json();
                 
                 tbody.innerHTML = '';
-                totalLbPages = data.totalPages || 1; // Safety fallback
+                totalLbPages = data.totalPages || 1;
                 
                 if(page >= totalLbPages) nextBtn.classList.add('disabled'); else nextBtn.classList.remove('disabled');
         
@@ -938,35 +878,28 @@
         
                 data.players.forEach(p => {
                     let rankClass = '';
-                    let extraTag = '';
-                    
-                    // Top 3 Rank Colors
                     if(rankCounter === 1) rankClass = 'rank-1';
                     else if(rankCounter === 2) rankClass = 'rank-2';
                     else if(rankCounter === 3) rankClass = 'rank-3';
                     
-                    if(rankCounter > 3 && rankCounter <= 10) extraTag = `<span class="top-10-tag">TOP 10</span>`;
+                    let extraTag = (rankCounter > 3 && rankCounter <= 10) ? `<span class="top-10-tag">TOP 10</span>` : '';
         
-                    // Special Tags
                     let specialTag = '';
                     if(p.name && SPECIAL_TAGS[p.name.toLowerCase()]) {
                         const t = SPECIAL_TAGS[p.name.toLowerCase()];
                         specialTag = `<span class="player-tag ${t.class}" style="font-size:0.5rem; margin-left:5px;">${t.text}</span>`;
                     }
         
-                    // --- COLUMN HIGHLIGHTING LOGIC ---
-                    // This determines which number gets the "Red Glow" based on what you clicked
+                    // Highlight Logic
                     const hlWins = currentLbSort === 'wins' ? 'col-highlight' : '';
                     const hlKills = currentLbSort === 'kills' ? 'col-highlight' : '';
                     const hlKdr = currentLbSort === 'kdr' ? 'col-highlight' : '';
-                    // If sorting by 'streak' or 'best_streak', highlight the streak column
                     const hlStreak = (currentLbSort === 'streak' || currentLbSort === 'best_streak') ? 'col-highlight' : '';
         
-                    // Format Data
                     const kdrVal = parseFloat(p.kdr || 0).toFixed(2);
-                    const killsVal = p.kills || 0; 
+                    const killsVal = p.kills || 0;
                     const winsVal = p.wins || 0;
-                    const streakVal = p.best_streak || 0; // Or p.streak for current streak
+                    const streakVal = p.best_streak || 0;
                     
                     const delay = (rankCounter % 20) * 0.05; 
                     
@@ -983,7 +916,6 @@
                                     </div>
                                 </div>
                             </td>
-                            <!-- The classes below apply the glow to the active column -->
                             <td class="${hlWins}" style="font-family:'Share Tech Mono'">${winsVal}</td>
                             <td class="${hlKills}" style="font-family:'Share Tech Mono'">${killsVal}</td>
                             <td class="${hlKdr}" style="font-family:'Share Tech Mono'">${kdrVal}</td>
@@ -1001,74 +933,51 @@
             }
         }
         
-        // 3. PAGINATION
         function changeLbPage(dir) {
             const newPage = currentLbPage + dir;
             if (newPage < 1) return;
             if (newPage > totalLbPages) return;
             loadLeaderboard(newPage);
         }
-
-        document.getElementById('playerInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') fetchStats();
-        });
-
-        // --- FETCH STATS WITH NEW LAYOUT AND FEATURES ---
+    
+        // --- FETCH STATS (PROFILE) ---
         async function fetchStats() {
             const username = document.getElementById('playerInput').value;
             if(!username) return;
-
-            // 1. SETUP SKELETONS
+    
             document.getElementById('profileDisplay').classList.add('visible'); 
-            
             const idsToLoad = ['nameDisplay', 'rankDisplay', 'viewContainer', 'kdrVal', 
-                   'winsVal', 'streakVal', 'skinContainer', 'chartBox', 'wrBox', 
-                   'bioBox', 'nemesisBox'];
+                   'winsVal', 'streakVal', 'skinContainer', 'chartBox', 'wrBox', 'bioBox', 'nemesisBox'];
                                
             idsToLoad.forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.classList.add('skeleton');
             });
             
-            // Clear Images & History
             const skinImg = document.getElementById('skinImg');
-            skinImg.classList.remove('loaded');
-            skinImg.src = ''; 
+            skinImg.classList.remove('loaded'); skinImg.src = ''; 
             document.getElementById('nemesisHead').src = '';
-            const historyContainer = document.getElementById('matchHistoryList');
-            historyContainer.innerHTML = `<div class="match-card skeleton" style="height: 60px;"></div><div class="match-card skeleton" style="height: 60px;"></div>`;
+            document.getElementById('matchHistoryList').innerHTML = `<div class="match-card skeleton" style="height: 60px;"></div><div class="match-card skeleton" style="height: 60px;"></div>`;
         
             try {
-                // FETCH
                 const response = await fetch(`/api?player=${username}`);
                 const data = await response.json();
         
                 if(data.error) { 
                     alert("Player not found!"); 
-                    idsToLoad.forEach(id => {
-                         const el = document.getElementById(id);
-                         if(el) el.classList.remove('skeleton');
-                    });
+                    cleanSkeletons(idsToLoad);
                     return; 
                 }
         
                 saveToHistory(username);
-        
-                // UPDATE TEXT
+                
                 document.getElementById('nameDisplay').innerText = data.stats.name || username;
                 document.getElementById('kdrVal').innerText = parseFloat(data.stats.kdr).toFixed(2);
                 document.getElementById('winsVal').innerText = data.stats.wins;
                 document.getElementById('streakVal').innerText = data.stats.best_streak;
                 document.getElementById('viewCount').innerText = data.stats.views || 0;
-                
-                // Rank Styling
-                const rankEl = document.getElementById('rankDisplay');
-                rankEl.innerText = `#${data.stats.rank}`;
-                rankEl.style.background = 'var(--panel)'; rankEl.style.color = 'var(--text-dim)';
-                if(data.stats.rank === 1) { rankEl.style.background = 'var(--gold)'; rankEl.style.color = 'black'; }
-                else if(data.stats.rank === 2) { rankEl.style.background = 'var(--silver)'; rankEl.style.color = 'black'; }
-                else if(data.stats.rank === 3) { rankEl.style.background = 'var(--bronze)'; rankEl.style.color = 'black'; }
-
+                document.getElementById('rankDisplay').innerText = `#${data.stats.rank}`;
+    
                 // Win Rate
                 const totalGames = (data.stats.wins || 0) + (data.stats.losses || 0);
                 let winPercent = totalGames > 0 ? Math.round((data.stats.wins / totalGames) * 100) : 50;
@@ -1076,50 +985,28 @@
                 document.getElementById('bar-win').style.width = `${winPercent}%`;
                 document.getElementById('bar-loss').style.width = `${100 - winPercent}%`;
         
-                // CHARTS & EXTRA FEATURES
                 renderChart(data.matches, username);
                 renderBiometrics(data.stats);
                 findNemesis(data.matches, username);
+                renderTicker(data.matches, username);
                 
-                // HISTORY
+                const historyContainer = document.getElementById('matchHistoryList');
                 historyContainer.innerHTML = ''; 
                 data.matches.forEach(match => {
                     const isWin = match.winner_name.toLowerCase() === username.toLowerCase();
                     const opponent = isWin ? match.loser_name : match.winner_name;
-                    const dateStr = new Date(match.match_time).toLocaleDateString();
                     const cardClass = isWin ? 'win' : 'loss';
                     const outcomeText = isWin ? 'VICTORY' : 'DEFEAT';
-                    const icon = isWin ? '<i class="fas fa-trophy"></i>' : '<i class="fas fa-skull"></i>';
-                    historyContainer.innerHTML += `
-                        <div class="match-card ${cardClass}">
-                            <div class="match-outcome">${icon} <span>${outcomeText}</span></div>
-                            <div class="match-vs">
-                                <span style="color:#666; font-size:0.8rem;">VS</span>
-                                <img src="https://visage.surgeplay.com/face/64/${opponent}" class="opponent-head">
-                                <span class="opponent-name">${opponent}</span>
-                            </div>
-                            <div class="match-date">${dateStr}</div>
-                        </div>`;
+                    historyContainer.innerHTML += `<div class="match-card ${cardClass}"><div class="match-outcome"><span>${outcomeText}</span></div><div class="match-vs"><span style="color:#666; font-size:0.8rem;">VS</span><span class="opponent-name">${opponent}</span></div></div>`;
                 });
         
-                // LOAD SKIN
                 const skinContainer = document.getElementById('skinContainer');
-                skinImg.onload = () => {
-                    skinImg.classList.add('loaded');
-                    if(skinContainer) skinContainer.classList.remove('skeleton');
-                };
-                skinImg.onerror = () => { if(skinContainer) skinContainer.classList.remove('skeleton'); };
+                skinImg.onload = () => { skinImg.classList.add('loaded'); skinContainer.classList.remove('skeleton'); };
+                skinImg.onerror = () => skinContainer.classList.remove('skeleton');
                 skinImg.src = `https://visage.surgeplay.com/full/512/${username}`;
-
-                // REMOVE REMAINING SKELETONS
-                idsToLoad.forEach(id => {
-                    if(id !== 'skinContainer') { 
-                        const el = document.getElementById(id);
-                        if(el) el.classList.remove('skeleton');
-                    }
-                });
+    
+                cleanSkeletons(idsToLoad);
                 
-                // TAGS
                 const tagEl = document.getElementById('tagDisplay');
                 tagEl.innerHTML = ""; 
                 const lowerName = username.toLowerCase();
@@ -1129,66 +1016,56 @@
                 }
         
             } catch (error) { 
-                console.error(error);
-                idsToLoad.forEach(id => {
-                    const el = document.getElementById(id);
-                    if(el) el.classList.remove('skeleton');
-                });
+                console.error(error); 
+                cleanSkeletons(idsToLoad);
                 alert("Error fetching data");
             }
         }
-
+    
+        function cleanSkeletons(ids) {
+            ids.forEach(id => {
+                if(id !== 'skinContainer') { 
+                    const el = document.getElementById(id);
+                    if(el) el.classList.remove('skeleton');
+                }
+            });
+        }
+    
+        // --- CHARTS ---
+        function renderTicker(matches, username) {
+            const ticker = document.getElementById('sequenceTicker');
+            ticker.innerHTML = '';
+            [...matches].reverse().forEach(m => {
+                const isWin = m.winner_name.toLowerCase() === username.toLowerCase();
+                const tick = document.createElement('div');
+                tick.className = isWin ? 'seq-tick win' : 'seq-tick loss';
+                ticker.appendChild(tick);
+            });
+        }
+    
         function renderChart(matches, username) {
             const ctx = document.getElementById('performanceChart').getContext('2d');
             const sortedMatches = [...matches].reverse(); 
-            
             let currentScore = 0;
             const dataPoints = sortedMatches.map(m => {
                 currentScore += (m.winner_name.toLowerCase() === username.toLowerCase()) ? 1 : -1;
                 return currentScore;
             });
-            const labels = sortedMatches.map((_, i) => `Match ${i + 1}`);
-        
+            const labels = sortedMatches.map((_, i) => `M${i + 1}`);
             if(myChart) myChart.destroy();
-        
             myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Trend', 
-                        data: dataPoints, 
-                        borderColor: '#ff3e3e', 
-                        backgroundColor: 'rgba(255, 62, 62, 0.1)',
-                        borderWidth: 2, 
-                        fill: true, 
-                        tension: 0.3, // Slightly sharper lines
-                        
-                        // --- THIS FIXES THE DOTS ---
-                        pointRadius: 4, 
-                        pointBackgroundColor: '#0b0b10', // Dark center to match bg
-                        pointBorderColor: '#ff3e3e',     // Red ring
-                        pointBorderWidth: 2,
-                        pointHoverRadius: 6,
-                        pointHoverBackgroundColor: '#ff3e3e',
-                        pointHoverBorderColor: '#fff'
+                        label: 'Trend', data: dataPoints, borderColor: '#ff3e3e', backgroundColor: 'rgba(255, 62, 62, 0.1)',
+                        borderWidth: 2, fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#0b0b10', pointBorderColor: '#ff3e3e'
                     }]
                 },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } }, 
-                    scales: { 
-                        x: { display: false }, 
-                        y: { 
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: '#666', font: { family: "'Share Tech Mono'" } }
-                        } 
-                    } 
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } } }
             });
         }
-
+    
         function renderBiometrics(stats) {
             const ctx = document.getElementById('radarChart').getContext('2d');
             const totalGames = (stats.wins + stats.losses) || 1;
@@ -1198,7 +1075,6 @@
             const experience = Math.min(100, (stats.wins / 100) * 100);
             const aggression = Math.min(100, (lethality * 1.2) - (survivability * 0.2));
             const dataValues = [survivability, lethality, consistency, experience, aggression];
-            
             const maxIndex = dataValues.indexOf(Math.max(...dataValues));
             const classes = ["GUARDIAN", "ASSASSIN", "MACHINE", "VETERAN", "BERSERKER"];
             const classEl = document.querySelector('#playerClass span');
@@ -1234,40 +1110,12 @@
             const headUrl = nemesis === "None" ? "Steve" : nemesis;
             document.getElementById('nemesisHead').src = `https://visage.surgeplay.com/face/128/${headUrl}`;
         }
-
-        // --- BACKGROUND ---
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        class Particle {
-            constructor() { this.reset(); }
-            reset() {
-                this.x = Math.random() * canvas.width; this.y = canvas.height + Math.random() * 100;
-                this.size = Math.random() * 3 + 1; this.speedY = Math.random() * 1 + 0.5;
-                this.opacity = Math.random() * 0.5 + 0.1;
-            }
-            update() { this.y -= this.speedY; this.opacity -= 0.002; if(this.opacity <= 0) this.reset(); }
-            draw() { ctx.fillStyle = `rgba(255, 62, 62, ${this.opacity})`; ctx.fillRect(this.x, this.y, this.size, this.size); }
-        }
-        function initParticles() { for(let i=0; i<50; i++) particles.push(new Particle()); }
-        function animateParticles() { ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(animateParticles); }
-
-        // --- SCROLL REVEAL ---
-        window.addEventListener('scroll', reveal);
-        function reveal() {
-            var reveals = document.querySelectorAll('.reveal');
-            for (var i = 0; i < reveals.length; i++) {
-                var windowheight = window.innerHeight;
-                var revealtop = reveals[i].getBoundingClientRect().top;
-                if (revealtop < windowheight - 150) reveals[i].classList.add('active');
-            }
-        }
-        reveal();
-
-        // --- SEARCH AUTOCOMPLETE ---
+    
+        // --- UTILS ---
+        document.getElementById('playerInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') fetchStats();
+        });
+    
         function setupAutocomplete() {
             const input = document.getElementById('playerInput');
             const box = document.getElementById('suggestions-box');
@@ -1296,7 +1144,7 @@
             });
             document.addEventListener('click', function(e) { if (e.target !== input && e.target !== box) box.style.display = 'none'; });
         }
-
+    
         function updateRecent() {
             let history = JSON.parse(localStorage.getItem('searchHistory')) || [];
             const container = document.getElementById('recent-container');
@@ -1311,6 +1159,7 @@
                 list.appendChild(tag);
             });
         }
+        
         function saveToHistory(name) {
             let history = JSON.parse(localStorage.getItem('searchHistory')) || [];
             history = history.filter(n => n.toLowerCase() !== name.toLowerCase());
@@ -1319,7 +1168,35 @@
             localStorage.setItem('searchHistory', JSON.stringify(history));
             updateRecent();
         }
-
+        
+        function copyIP() {
+            navigator.clipboard.writeText("play.slashup.net");
+            const toast = document.getElementById("toast-box");
+            toast.innerHTML = `<i class="fas fa-check-circle toast-icon"></i><div><div style="font-weight: bold; color: white;">IP Copied!</div><div style="font-size: 0.8rem; color: #aaa;">See you on the battlefield.</div></div>`;
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 3000);
+        }
+    
+        // --- BACKGROUND ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width; this.y = canvas.height + Math.random() * 100;
+                this.size = Math.random() * 3 + 1; this.speedY = Math.random() * 1 + 0.5;
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() { this.y -= this.speedY; this.opacity -= 0.002; if(this.opacity <= 0) this.reset(); }
+            draw() { ctx.fillStyle = `rgba(255, 62, 62, ${this.opacity})`; ctx.fillRect(this.x, this.y, this.size, this.size); }
+        }
+        function initParticles() { for(let i=0; i<50; i++) particles.push(new Particle()); }
+        function animateParticles() { ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(animateParticles); }
+    
         // --- GLOBAL FEED ---
         async function loadGlobalFeed() {
             const feed = document.getElementById('global-feed');
@@ -1335,18 +1212,18 @@
                 });
             } catch (e) { console.error("Pulse error:", e); }
         }
-
-        function changeLbPage(dir) {
-            const newPage = currentLbPage + dir;
-            
-            // Prevent going below Page 1
-            if (newPage < 1) return;
-            
-            // Prevent going past the Last Page
-            if (newPage > totalLbPages) return;
-            
-            loadLeaderboard(newPage);
+    
+        // --- SCROLL REVEAL ---
+        window.addEventListener('scroll', reveal);
+        function reveal() {
+            var reveals = document.querySelectorAll('.reveal');
+            for (var i = 0; i < reveals.length; i++) {
+                var windowheight = window.innerHeight;
+                var revealtop = reveals[i].getBoundingClientRect().top;
+                if (revealtop < windowheight - 150) reveals[i].classList.add('active');
+            }
         }
+        reveal();
     </script>
 </body>
 </html>
