@@ -7,6 +7,10 @@ module.exports = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = 20; 
   const offset = (page - 1) * limit;
+  
+  const sortParam = req.query.sort || 'wins';
+  const validSorts = ['wins', 'kills', 'kdr', 'streak', 'best_streak'];
+  const sortBy = validSorts.includes(sortParam) ? sortParam : 'wins';
 
   let connection;
   try {
@@ -22,7 +26,10 @@ module.exports = async (req, res) => {
     const totalPlayers = countRows[0].total;
 
     const [rows] = await connection.execute(
-      'SELECT name, wins, kdr, best_streak FROM slashup_stats ORDER BY wins DESC LIMIT ? OFFSET ?',
+      `SELECT name, wins, losses, kills, deaths, kdr, streak, best_streak 
+       FROM slashup_stats 
+       ORDER BY ${sortBy} DESC 
+       LIMIT ? OFFSET ?`,
       [limit.toString(), offset.toString()]
     );
 
