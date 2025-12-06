@@ -576,7 +576,9 @@
                             <div style="margin-top: 10px; display: flex; align-items: center; gap: 15px;">
                                 <span class="rank-badge skeleton" id="rankDisplay" style="padding:2px 8px; min-width: 50px;"># -</span>
                                 <div class="skeleton" style="color: var(--text-dim); min-width: 60px;">
-                                    <span id="viewCount">0</span> Views
+                                    <div id="viewContainer" class="skeleton" style="color: var(--text-dim); min-width: 60px;">
+                                        <span id="viewCount">0</span> Views
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -846,8 +848,8 @@
             container.classList.add('visible'); // Make sure it's display:grid
             
             // Add 'skeleton' class to all dynamic elements
-            const idsToLoad = ['nameDisplay', 'rankDisplay', 'viewCount', 'kdrVal', 
-                               'winsVal', 'streakVal', 'skinContainer', 'chartBox', 'wrBox'];
+            const idsToLoad = ['nameDisplay', 'rankDisplay', 'viewContainer', 'kdrVal', 
+                   'winsVal', 'streakVal', 'skinContainer', 'chartBox', 'wrBox'];
             idsToLoad.forEach(id => document.getElementById(id).classList.add('skeleton'));
             
             // Reset Image
