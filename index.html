@@ -598,8 +598,34 @@
                             <div class="big-stat-val skeleton" id="streakVal" style="min-width: 60px; min-height: 40px;">-</div>
                         </div>
                     </div>
-            
-                    <!-- NEW: Performance Graph -->
+
+                    <div class="content-row" style="margin-bottom: 2rem; gap: 1.5rem; grid-template-columns: 1fr 1fr;">
+                        
+                        <div class="panel-box skeleton" id="bioBox" style="display:flex; flex-direction:column; align-items:center; position:relative;">
+                            <div class="section-title" style="width:100%; border:none; margin-bottom:0;">COMBAT BIOMETRICS</div>
+                            <div style="width: 100%; height: 300px; position: relative;">
+                                <canvas id="radarChart"></canvas>
+                            </div>
+                            <div id="playerClass" style="position:absolute; bottom:10px; right:10px; font-family:'Share Tech Mono'; color:var(--accent); font-size:1.5rem; text-shadow:0 0 10px var(--accent-glow); opacity:0.8;">
+                                CLASS: <span style="color:white;">UNKNOWN</span>
+                            </div>
+                        </div>
+                    
+                        <div class="panel-box skeleton" id="nemesisBox" style="background: linear-gradient(135deg, rgba(20,20,25,0.9), rgba(255,0,0,0.05)); border: 1px solid rgba(255, 62, 62, 0.2);">
+                            <div class="section-title" style="color:var(--loss); border-color:rgba(255, 62, 62, 0.3);">
+                                <i class="fas fa-skull-crossbones"></i> ARCH NEMESIS
+                            </div>
+                            <div style="text-align:center; padding-top:1rem;">
+                                <div style="position:relative; display:inline-block;">
+                                    <img src="" id="nemesisHead" style="width:80px; height:80px; border-radius:10px; border:2px solid var(--loss); box-shadow: 0 0 20px rgba(255, 62, 62, 0.3);">
+                                    <div style="position:absolute; bottom:-10px; left:50%; transform:translateX(-50%); background:var(--loss); color:white; font-family:'Share Tech Mono'; font-size:0.7rem; padding:2px 6px; border-radius:4px;">MOST DANGEROUS</div>
+                                </div>
+                                <h2 id="nemesisName" style="margin-top:15px; font-size:1.8rem;">-</h2>
+                                <p style="color:#888; font-family:'Share Tech Mono';">Killed you <span id="nemesisKills" style="color:white; font-weight:bold;">0</span> times</p>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="chart-container skeleton" id="chartBox">
                         <div class="section-title" style="font-size:1rem; border:none; margin-bottom:10px;">Performance History</div>
                         <canvas id="performanceChart"></canvas>
@@ -651,6 +677,8 @@
     </footer>
 
     <script>
+        let myRadar = null;
+        
         const SPECIAL_TAGS = {
             "hugeadventure": { text: "OWNER", class: "tag-owner" },
             "admin_name":    { text: "ADMIN", class: "tag-admin" },
@@ -847,7 +875,8 @@
             container.classList.add('visible'); 
             
             const idsToLoad = ['nameDisplay', 'rankDisplay', 'viewContainer', 'kdrVal', 
-                   'winsVal', 'streakVal', 'skinContainer', 'chartBox', 'wrBox'];
+                   'winsVal', 'streakVal', 'skinContainer', 'chartBox', 'wrBox', 
+                   'bioBox', 'nemesisBox'];
                                
             idsToLoad.forEach(id => {
                 const el = document.getElementById(id);
@@ -1044,6 +1073,10 @@
                 }
             });
         }
+
+        renderChart(data.matches, username);
+        renderBiometrics(data.stats);
+        findNemesis(data.matches, username);
         
         // --- SCROLL REVEAL ANIMATION ---
         window.addEventListener('scroll', reveal);
@@ -1304,6 +1337,97 @@
         
         loadGlobalFeed();
         setInterval(loadGlobalFeed, 30000);
+
+        function renderBiometrics(stats) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            const totalGames = (stats.wins + stats.losses) || 1;
+            const wr = (stats.wins / totalGames) * 100;
+            const survivability = Math.min(100, wr * 1.5); 
+        
+            const kd = parseFloat(stats.kdr);
+            const lethality = Math.min(100, (kd / 4) * 100);
+        
+            const consistency = Math.min(100, (stats.best_streak / 20) * 100);
+        
+            const experience = Math.min(100, (stats.wins / 500) * 100);
+        
+
+            const aggression = Math.min(100, (lethality * 1.2) - (survivability * 0.2));
+        
+            const dataValues = [survivability, lethality, consistency, experience, aggression];
+        
+            const maxVal = Math.max(...dataValues);
+            const maxIndex = dataValues.indexOf(maxVal);
+            const classes = ["GUARDIAN", "ASSASSIN", "MACHINE", "VETERAN", "BERSERKER"];
+            document.querySelector('#playerClass span').innerText = classes[maxIndex];
+        
+            if (myRadar) myRadar.destroy();
+        
+            myRadar = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['SURVIVABILITY', 'LETHALITY', 'CONSISTENCY', 'EXPERIENCE', 'AGGRESSION'],
+                    datasets: [{
+                        label: 'Biometrics',
+                        data: dataValues,
+                        backgroundColor: 'rgba(255, 62, 62, 0.2)',
+                        borderColor: '#ff3e3e',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#ff3e3e',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#ff3e3e'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            pointLabels: {
+                                color: '#888aa',
+                                font: { family: "'Share Tech Mono'", size: 10 }
+                            },
+                            ticks: { display: false, backdropColor: 'transparent' },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+        
+        function findNemesis(matches, username) {
+            const killers = {};
+            let maxKills = 0;
+            let nemesis = "None";
+        
+            matches.forEach(m => {
+                if (m.winner_name.toLowerCase() !== username.toLowerCase()) {
+                    const killer = m.winner_name;
+                    killers[killer] = (killers[killer] || 0) + 1;
+                    
+                    if (killers[killer] > maxKills) {
+                        maxKills = killers[killer];
+                        nemesis = killer;
+                    }
+                }
+            });
+        
+            if (nemesis !== "None") {
+                document.getElementById('nemesisName').innerText = nemesis;
+                document.getElementById('nemesisKills').innerText = maxKills;
+                document.getElementById('nemesisHead').src = `https://visage.surgeplay.com/face/128/${nemesis}`;
+            } else {
+                document.getElementById('nemesisName').innerText = "UNDEFEATED";
+                document.getElementById('nemesisKills').innerText = "0";
+                document.getElementById('nemesisHead').src = `https://visage.surgeplay.com/face/128/Steve`;
+            }
+        }
         
     </script>
 </body>
