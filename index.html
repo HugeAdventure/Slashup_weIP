@@ -1191,6 +1191,59 @@
         }
         
         updateRecent();
+
+        // --- GLOBAL BATTLE FEED ---
+        async function loadGlobalFeed() {
+            const feed = document.getElementById('global-feed');
+            if(!feed) return;
+        
+            try {
+                const res = await fetch('/api/global_matches');
+                const data = await res.json();
+                
+                feed.innerHTML = ''; 
+        
+                data.forEach((match, index) => {
+                    const dateStr = new Date(match.match_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    const card = `
+                        <div style="
+                            min-width: 250px; 
+                            background: rgba(255,255,255,0.03); 
+                            border: 1px solid rgba(255,255,255,0.1); 
+                            padding: 1rem; 
+                            display: flex; 
+                            flex-direction: column; 
+                            gap: 10px;
+                            opacity: 0;
+                            animation: lbSlideIn 0.5s forwards;
+                            animation-delay: ${index * 0.1}s;
+                        ">
+                            <div style="font-size:0.7rem; color:#666; font-family:'Share Tech Mono'">${dateStr}</div>
+                            
+                            <div style="display:flex; align-items:center; justify-content:space-between;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <img src="https://visage.surgeplay.com/face/32/${match.winner_name}" style="border-radius:4px;">
+                                    <span style="color:var(--win); font-weight:bold; font-size:0.9rem;">${match.winner_name}</span>
+                                </div>
+                                <span style="font-size:0.7rem; color:#444;">VS</span>
+                                <div style="display:flex; align-items:center; gap:8px; flex-direction:row-reverse;">
+                                    <img src="https://visage.surgeplay.com/face/32/${match.loser_name}" style="border-radius:4px; filter:grayscale(100%);">
+                                    <span style="color:#888; font-size:0.9rem;">${match.loser_name}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    feed.innerHTML += card;
+                });
+        
+            } catch (e) {
+                console.error("Pulse error:", e);
+            }
+        }
+        
+        loadGlobalFeed();
+        setInterval(loadGlobalFeed, 30000);
         
     </script>
 </body>
