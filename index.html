@@ -29,30 +29,6 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        #global-feed {
-            /* Firefox support */
-            scrollbar-width: thin;
-            scrollbar-color: var(--accent) var(--bg);
-        }
-        
-        /* Chrome, Edge, Safari */
-        #global-feed::-webkit-scrollbar {
-            height: 4px; /* Very thin */
-        }
-        
-        #global-feed::-webkit-scrollbar-track {
-            background: transparent; 
-        }
-        
-        #global-feed::-webkit-scrollbar-thumb {
-            background: var(--accent); 
-            border-radius: 10px;
-        }
-        
-        #global-feed::-webkit-scrollbar-thumb:hover {
-            background: #ff6666; /* Lighter red on hover */
-        }
-    
         body {
             background-color: var(--bg);
             background-image: linear-gradient(to bottom, transparent, var(--bg)), url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
@@ -206,6 +182,7 @@
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
             transition: 0.3s;
         }
+        
         .discord-banner:hover { border-color: #5865F2; box-shadow: 0 0 50px rgba(88, 101, 242, 0.2); }
         
         .discord-banner::before {
@@ -282,6 +259,10 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        #global-feed::-webkit-scrollbar { height: 6px; }
+        #global-feed::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        #global-feed::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
 
         /* --- LEADERBOARD --- */
         .lb-controls { display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center; }
@@ -474,6 +455,7 @@
                 <p class="team-sub">Passionate individuals dedicated to creating the best PvP experience.</p>
                 
                 <div class="team-grid">
+                    <!-- HugeAdventure Card -->
                     <div class="team-card">
                         <img src="https://visage.surgeplay.com/bust/256/HugeAdventure" class="team-skin">
                         <div class="team-name">HugeAdventure</div>
@@ -561,6 +543,8 @@
                 </div>
 
                 <div class="player-data">
+                    
+                    <!-- Header: Name, Tag, Share, Rank, Views -->
                     <div style="margin-bottom:2rem; display:flex; justify-content:space-between; align-items:flex-end;">
                         <div>
                             <div style="display:flex; align-items:center; gap: 10px;">
@@ -582,6 +566,7 @@
                         </div>
                     </div>
 
+                    <!-- Big Stats Grid -->
                     <div class="stats-big-grid">
                         <div class="big-stat accent">
                             <div style="font-size:0.8rem; color:#888; margin-bottom:5px;">K/D RATIO</div>
@@ -597,6 +582,7 @@
                         </div>
                     </div>
 
+                    <!-- Win Rate Bar -->
                     <div class="win-rate-container">
                         <div class="wr-label">
                             <span>WIN RATE</span>
@@ -608,6 +594,7 @@
                         </div>
                     </div>
 
+                    <!-- Match History -->
                     <div class="panel-box">
                         <div class="section-title" style="font-size:1rem;">Recent Matches</div>
                         <div id="matchHistoryList" class="match-list"></div>
@@ -619,10 +606,14 @@
 
     <footer>
         <div class="container" style="display:flex; justify-content:space-between; align-items:center; padding: 2rem 0;">
+        
+            <!-- Left: Copyright -->
             <div style="text-align:left;">
                 <div style="font-weight:bold; font-size:1.2rem; color:white; margin-bottom:5px;">SLASH<span style="color:var(--accent)">UP</span></div>
                 <div style="color:#666;">&copy; 2025 SlashUp. <br>Not affiliated with Mojang AB.</div>
             </div>
+
+            <!-- Right: Links -->
             <div style="display:flex; gap:20px;">
                 <a href="#" style="color:#888; text-decoration:none; transition:0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#888'">Store</a>
                 <a href="#" style="color:#888; text-decoration:none; transition:0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#888'">Rules</a>
@@ -921,6 +912,7 @@
             }
         }
         
+        // --- SCROLL REVEAL ANIMATION ---
         window.addEventListener('scroll', reveal);
         
         function reveal() {
@@ -929,7 +921,7 @@
             for (var i = 0; i < reveals.length; i++) {
                 var windowheight = window.innerHeight;
                 var revealtop = reveals[i].getBoundingClientRect().top;
-                var revealpoint = 150; 
+                var revealpoint = 150; // Trigger point
         
                 if (revealtop < windowheight - revealpoint) {
                     reveals[i].classList.add('active');
@@ -938,6 +930,7 @@
         }
         reveal();
 
+        // --- BACKGROUND PARTICLES (EMBERS) ---
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
@@ -956,7 +949,7 @@
         
             reset() {
                 this.x = Math.random() * canvas.width;
-                this.y = canvas.height + Math.random() * 100;
+                this.y = canvas.height + Math.random() * 100; // Start below screen
                 this.size = Math.random() * 3 + 1;
                 this.speedY = Math.random() * 1 + 0.5;
                 this.speedX = (Math.random() - 0.5) * 0.5;
@@ -975,14 +968,15 @@
             }
         
             draw() {
-                ctx.fillStyle = `rgba(255, 62, 62, ${this.opacity})`; 
+                ctx.fillStyle = `rgba(255, 62, 62, ${this.opacity})`; // Your Accent Red
                 ctx.beginPath();
-                ctx.rect(this.x, this.y, this.size, this.size); 
+                ctx.rect(this.x, this.y, this.size, this.size); // Square "pixels" fit the MC theme
                 ctx.fill();
             }
         }
         
         function initParticles() {
+            // Create 50 particles
             for (let i = 0; i < 50; i++) {
                 particles.push(new Particle());
             }
@@ -1000,12 +994,15 @@
         initParticles();
         animateParticles();
 
+        // --- AUTOCOMPLETE LOGIC ---
         const input = document.getElementById('playerInput');
         const box = document.getElementById('suggestions-box');
         let debounceTimer;
         
         input.addEventListener('input', function() {
             const val = this.value;
+            
+            // Clear old timer
             clearTimeout(debounceTimer);
             
             if (val.length < 2) {
@@ -1013,6 +1010,7 @@
                 return;
             }
         
+            // Wait 300ms after typing stops before calling API (Saves resources)
             debounceTimer = setTimeout(async () => {
                 try {
                     const res = await fetch(`/api/search?q=${val}`);
@@ -1025,6 +1023,7 @@
                         names.forEach(n => {
                             const div = document.createElement('div');
                             div.className = 'suggestion-item';
+                            // Show small face + name
                             div.innerHTML = `
                                 <img src="https://visage.surgeplay.com/face/32/${n.name}" class="sug-head">
                                 <span>${n.name}</span>
@@ -1032,7 +1031,7 @@
                             div.onclick = () => {
                                 input.value = n.name;
                                 box.style.display = 'none';
-                                fetchStats(); 
+                                fetchStats(); // Auto search on click
                             };
                             box.appendChild(div);
                         });
@@ -1093,20 +1092,8 @@
         
         updateRecent();
 
+        // --- GLOBAL BATTLE FEED ---
         async function loadGlobalFeed() {
-            const feed = document.getElementById('global-feed');
-            if(!feed) return;
-        
-            try {
-                const res = await fetch('/api/global_matches');
-                const data = await res.json();
-                
-                feed.innerHTML = ''; 
-        
-                data.forEach((match, index) => {
-                    const dateStr = new Date(match.match_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    
-                    async function loadGlobalFeed() {
             const feed = document.getElementById('global-feed');
             if(!feed) return;
         
