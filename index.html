@@ -575,11 +575,9 @@
                     
                             <div style="margin-top: 10px; display: flex; align-items: center; gap: 15px;">
                                 <span class="rank-badge skeleton" id="rankDisplay" style="padding:2px 8px; min-width: 50px;"># -</span>
-                                <div class="skeleton" style="color: var(--text-dim); min-width: 60px;">
-                                    <div id="viewContainer" class="skeleton" style="color: var(--text-dim); min-width: 60px;">
-                                        <i class="far fa-eye" style="margin-right: 5px;"></i>
-                                        <span id="viewCount">0</span>
-                                    </div>
+                                <div id="viewContainer" class="skeleton" style="color: var(--text-dim); min-width: 60px;">
+                                    <i class="far fa-eye" style="margin-right: 5px;"></i>
+                                    <span id="viewCount">0</span>
                                 </div>
                             </div>
                         </div>
@@ -849,7 +847,7 @@
             container.classList.add('visible'); 
             
             const idsToLoad = ['nameDisplay', 'rankDisplay', 'viewContainer', 'kdrVal', 
-                               'winsVal', 'streakVal', 'skinContainer', 'chartBox', 'wrBox'];
+                   'winsVal', 'streakVal', 'skinContainer', 'chartBox', 'wrBox'];
                                
             idsToLoad.forEach(id => {
                 const el = document.getElementById(id);
